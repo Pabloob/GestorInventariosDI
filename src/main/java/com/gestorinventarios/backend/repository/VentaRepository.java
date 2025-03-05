@@ -8,7 +8,10 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
 
     @Query("SELECT COUNT(v) FROM Venta v")
     int getTotalNumeroVentas();
-    @Query("SELECT COALESCE(SUM(v.cantidadVendida * p.precio), 0) FROM Venta v JOIN v.producto p")
+
+    @Query("SELECT COALESCE(SUM(dv.cantidad * dv.precioUnitario), 0) FROM DetalleVenta dv WHERE dv.venta.id = :ventaId")
+    double getTotalIngresosPorVenta(Long ventaId);
+
+    @Query("SELECT COALESCE(SUM(dv.cantidad * dv.precioUnitario), 0) FROM DetalleVenta dv")
     double getTotalIngresosVentas();
-    void removeVentaById(Long id);
 }

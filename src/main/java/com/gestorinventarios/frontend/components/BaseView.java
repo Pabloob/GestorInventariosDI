@@ -235,31 +235,54 @@ public abstract class BaseView extends JFrame {
         gbc.gridx = columna;
         gbc.gridy = fila;
         gbc.gridwidth = 1;
-        gbc.weightx = 0.8;
+        gbc.weightx = 0.9;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         mainPanel.add(panel, gbc);
     }
 
-    protected void crearPanelLateral(int fila, int columna, String... textos) {
+    protected void crearPanelLateral(int fila, int columna, String[] titulos, String[] textos) {
+        if (titulos.length != textos.length) {
+            throw new IllegalArgumentException("Los arrays titulos y textos deben tener la misma longitud.");
+        }
+
         JPanel sidebarPanel = new JPanel(new GridLayout(textos.length, 1, 10, 10));
         sidebarPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        for (String etiqueta : textos) {
-            JLabel label = new JLabel(etiqueta, SwingConstants.CENTER);
-            label.setFont(new Font("Segoe UI", Font.BOLD, 16));
-            label.setForeground(Color.WHITE);
+        for (int i = 0; i < textos.length; i++) {
+            JPanel box = getJPanel(titulos, textos, i);
 
-            JPanel box = new JPanel(new BorderLayout());
-            box.setBackground(new Color(186, 186, 186));
-            box.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-            box.add(label, BorderLayout.CENTER);
             sidebarPanel.add(box);
         }
 
         gbc.gridx = columna;
         gbc.gridy = fila;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.1;
+        gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         mainPanel.add(sidebarPanel, gbc);
     }
+
+    private static JPanel getJPanel(String[] titulos, String[] textos, int i) {
+        JPanel box = new JPanel(new BorderLayout());
+        box.setBackground(new Color(186, 186, 186));
+        box.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(100, 100, 100), 2, true),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+
+        JLabel tituloLabel = new JLabel(titulos[i], SwingConstants.LEFT);
+        tituloLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        tituloLabel.setForeground(Color.BLACK);
+
+        JLabel contenidoLabel = new JLabel(textos[i], SwingConstants.CENTER);
+        contenidoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        contenidoLabel.setForeground(Color.WHITE);
+
+        box.add(tituloLabel, BorderLayout.NORTH);
+        box.add(contenidoLabel, BorderLayout.CENTER);
+        return box;
+    }
+
 }

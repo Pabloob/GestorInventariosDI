@@ -5,25 +5,25 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class Producto {
+public class DetalleVenta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nombre;
-    private double precio;
+    @ManyToOne
+    @JoinColumn(name = "venta_id", nullable = false)
+    private Venta venta;
+
+    @ManyToOne
+    @JoinColumn(name = "producto_id", nullable = false)
+    private Producto producto;
+
     private int cantidad;
-
-    @Column(columnDefinition = "INTEGER DEFAULT 1")
-    private int activo = 1;
-
-    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL)
-    private List<DetalleVenta> detalles;
+    private double precioUnitario;
 }

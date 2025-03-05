@@ -25,9 +25,8 @@ public class ProductoController {
         return productoService.obtenerPorNombre(nombre);
     }
 
-    public void registrarProducto(String nombre,double precio, int cantidad) {
-        Producto producto = new Producto(null, nombre, precio, cantidad, 1);
-        System.out.println(producto);
+    public void registrarProducto(String nombre, double precio, int cantidad) {
+        Producto producto = new Producto(null, nombre, precio, cantidad, 1, null);
         productoService.guardarProducto(producto);
     }
 
@@ -51,8 +50,6 @@ public class ProductoController {
                         producto.getPrecio() + "€",
                 });
             }
-
         }
     }
-
 }

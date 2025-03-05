@@ -22,9 +22,10 @@ public class TablaCustom extends JScrollPane {
         tableModel = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;
+                return column == 1; // ✅ Permitir edición en la columna 1 (Productos)
             }
         };
+
 
         table = new JTable(tableModel);
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModel);
@@ -41,4 +42,10 @@ public class TablaCustom extends JScrollPane {
             table.getColumnModel().getColumn(i).setCellRenderer(renderer);
         }
     }
+
+    public void setComboBoxItems(String[] items) {
+        JComboBox<String> comboBox = new JComboBox<>(items);
+        table.getColumnModel().getColumn(1).setCellEditor(new DefaultCellEditor(comboBox));
+    }
+
 }

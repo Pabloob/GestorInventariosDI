@@ -32,7 +32,8 @@ public class VentanaPrincipal extends BaseView {
 
         crearPanelTablas(1, 0, tablaVentas, tablaProductos);
         actualizarPanelLateral();
-        crearPanelLateral(1, 1, cantidadProductosStockBajo, numVentas, ingresos);
+        crearPanelLateral(1, 1, new String[]{"Productos en bajo stock", "Numero de ventas", "Total de ingresos"},
+                new String[]{cantidadProductosStockBajo, numVentas, ingresos});
 
         actualizarTablas();
     }
@@ -62,8 +63,8 @@ public class VentanaPrincipal extends BaseView {
     }
 
     private void actualizarPanelLateral() {
-        cantidadProductosStockBajo = "Productos en bajo stock: " + productoController.obtenerStockBajo();
-        numVentas = "Numero de ventas: " + ventaController.obtenerNumVentas();
-        ingresos = "Total de ingresos: " + ventaController.obtenerTotalIngresos();
+        cantidadProductosStockBajo = String.valueOf(productoController.obtenerStockBajo());
+        numVentas = String.valueOf(ventaController.obtenerNumVentas());
+        ingresos = ventaController.obtenerTotalIngresos() + "€";
     }
 }

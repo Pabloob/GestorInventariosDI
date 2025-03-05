@@ -24,8 +24,10 @@ public class ProductoService {
 
     public void eliminarProducto(Long id) {
         Producto producto = productoRepository.findById(id).orElse(null);
-        producto.setActivo(0);
-        productoRepository.save(producto);
+        if (producto != null) {
+            producto.setActivo(0);
+            productoRepository.save(producto);
+        }
     }
 
     public int obtenerStockBajo() {

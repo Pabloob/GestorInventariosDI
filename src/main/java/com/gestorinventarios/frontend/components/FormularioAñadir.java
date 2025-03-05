@@ -1,28 +1,32 @@
 package com.gestorinventarios.frontend.components;
 
+import com.gestorinventarios.backend.model.DetalleVenta;
 import com.gestorinventarios.backend.model.Producto;
 import com.gestorinventarios.frontend.controller.ProductoController;
 import com.gestorinventarios.frontend.controller.UsuarioController;
 import com.gestorinventarios.frontend.controller.VentaController;
 
 import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FormularioAñadir extends BaseView {
 
     JButton anadir;
     JButton cancelar;
-    JTextField nombreProducto;
     JTextField cantidad;
     JTextField precio;
     JLabel mensajeError;
     boolean esVenta;
     TablaCustom tabla;
-    JComboBox<String> productos;
+    JList<String> listaProductos;
+    DefaultListModel<String> modeloLista;
 
     public FormularioAñadir(TablaCustom tabla, String titulo, boolean esVenta, UsuarioController usuarioController,
                             ProductoController productoController,
                             VentaController ventaController) {
-        super(titulo, 450, esVenta ? 300 : 400, usuarioController, productoController, ventaController);
+        super(titulo, 500, esVenta ? 350 : 400, usuarioController, productoController, ventaController);
         this.esVenta = esVenta;
         this.tabla = tabla;
         crearTitulo(titulo);
@@ -32,23 +36,35 @@ public class FormularioAñadir extends BaseView {
         cancelar = crearBoton("Cancelar");
 
         if (!esVenta) {
-            nombreProducto = (JTextField) crearCampoTexto("Nombre", false, 1);
+            JTextField nombreProducto = (JTextField) crearCampoTexto("Nombre", false, 1);
             precio = (JTextField) crearCampoTexto("Precio", false, 3);
             mensajeError = crearMensajeError(4);
             crearPanelBotones(5, anadir, cancelar);
         } else {
-            productos = new JComboBox<>();
-            for (Producto producto : productoController.obtenerProductos()) {
-                productos.addItem(producto.getNombre());
+            // Crear la lista de productos
+            modeloLista = new DefaultListModel<>();
+            List<Producto> productos = productoController.obtenerProductos();
+            for (Producto producto : productos) {
+                modeloLista.addElement(producto.getNombre());
             }
 
-            if (productos.getItemCount() == 0) {
+            listaProductos = new JList<>(modeloLista);
+            listaProductos.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+            JScrollPane scrollPane = new JScrollPane(listaProductos);
+            scrollPane.setPreferredSize(new java.awt.Dimension(250, 80));
+
+            // Validación si no hay productos disponibles
+            if (modeloLista.isEmpty()) {
                 mensajeError = crearMensajeError(3);
                 mensajeError.setText("No hay productos disponibles para vender.");
                 anadir.setEnabled(false);
             } else {
-                productos = (JComboBox<String>) crearDesplegable("Productos", productos, 1);
                 mensajeError = crearMensajeError(3);
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.gridx = 1;
+                gbc.gridy = 1;
+                gbc.fill = GridBagConstraints.HORIZONTAL;
+                mainPanel.add(scrollPane, gbc);
                 crearPanelBotones(4, anadir, cancelar);
             }
         }
@@ -62,12 +78,12 @@ public class FormularioAñadir extends BaseView {
         int cantidadValor;
 
         // Validación de campos vacíos
-        if (cantidadTexto.isEmpty() || (!esVenta && (nombreProducto.getText().trim().isEmpty() || precio.getText().trim().isEmpty()))) {
+        if (cantidadTexto.isEmpty()) {
             mensajeError.setText("Todos los campos son obligatorios.");
             return;
         }
 
-        // Validación de número en cantidad y precio
+        // Validación de número en cantidad
         try {
             cantidadValor = Integer.parseInt(cantidadTexto);
             if (cantidadValor <= 0) {
@@ -80,38 +96,29 @@ public class FormularioAñadir extends BaseView {
         }
 
         if (esVenta) {
-            String nombreSeleccionado = (String) productos.getSelectedItem();
-            if (nombreSeleccionado == null) {
-                mensajeError.setText("Debe seleccionar un producto.");
+            List<String> productosSeleccionados = listaProductos.getSelectedValuesList();
+            if (productosSeleccionados.isEmpty()) {
+                mensajeError.setText("Debe seleccionar al menos un producto.");
                 return;
             }
 
-            ventaController.registrarVenta(nombreSeleccionado, cantidadValor);
+            // Convertir los nombres de productos a objetos `DetalleVenta`
+            List<DetalleVenta> detalles = new ArrayList<>();
+            for (String nombreProducto : productosSeleccionados) {
+                Producto producto = productoController.obtenerPorNombre(nombreProducto);
+                if (producto != null) {
+                    DetalleVenta detalle = new DetalleVenta();
+                    detalle.setProducto(producto);
+                    detalle.setCantidad(cantidadValor);
+                    detalle.setPrecioUnitario(producto.getPrecio());
+                    detalles.add(detalle);
+                }
+            }
+
+            ventaController.registrarVenta(1, detalles); // Suponiendo que clienteId=1
             ventaController.actualizarVentas(tabla);
             JOptionPane.showMessageDialog(this, "Venta registrada con éxito", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             dispose();
-        } else {
-            double precioValor;
-            try {
-                precioValor = Double.parseDouble(precio.getText().trim());
-                if (precioValor <= 0) {
-                    mensajeError.setText("El precio debe ser mayor a 0.");
-                    return;
-                }
-            } catch (NumberFormatException e) {
-                mensajeError.setText("El precio debe ser un número válido.");
-                return;
-            }
-
-            String nombre = nombreProducto.getText().trim();
-            if (productoController.obtenerPorNombre(nombre) == null) {
-                productoController.registrarProducto(nombre, precioValor, cantidadValor);
-                productoController.actualizarProductos(tabla);
-                JOptionPane.showMessageDialog(this, "Producto registrado con éxito", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                dispose();
-            } else {
-                mensajeError.setText("El producto ya existe.");
-            }
         }
     }
 }

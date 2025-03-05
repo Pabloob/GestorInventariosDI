@@ -18,8 +18,8 @@ public class UsuarioService {
         return usuarioRepository.findAll();
     }
 
-    public Usuario guardarUsuario(Usuario usuario) {
-        return usuarioRepository.save(usuario);
+    public void guardarUsuario(Usuario usuario) {
+        usuarioRepository.save(usuario);
     }
 
     public Usuario obtenerUsuarioPorEmail(String email) {
