@@ -2,7 +2,7 @@ package com.gestorinventarios.frontend.controller;
 
 import com.gestorinventarios.backend.model.Producto;
 import com.gestorinventarios.backend.service.ProductoService;
-import com.gestorinventarios.frontend.components.TablaCustom;
+import com.gestorinventarios.frontend.components.Tabla.TablaCustom;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 

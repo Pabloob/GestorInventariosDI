@@ -1,15 +1,11 @@
-package com.gestorinventarios.frontend.components;
-
-import lombok.Getter;
-import lombok.Setter;
+package com.gestorinventarios.frontend.components.Tabla;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 
-@Getter
-@Setter
 public class TablaCustom extends JScrollPane {
     private JTable table;
     private DefaultTableModel tableModel;
@@ -19,33 +15,38 @@ public class TablaCustom extends JScrollPane {
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 14));
         lblTitulo.setForeground(UIManager.getColor("Label.foreground"));
 
-        tableModel = new DefaultTableModel(columnas, 0) {
+        // Crear el modelo de tabla
+        tableModel = new DefaultTableModel(columnas, 0);
+
+        // Crear la tabla
+        table = new JTable(tableModel) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 1; // ✅ Permitir edición en la columna 1 (Productos)
+                TableCellEditor editor = getCellEditor(row, column);
+                return editor instanceof ProductoComboBoxEditor;
+
             }
         };
 
-
-        table = new JTable(tableModel);
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(tableModel);
         table.setRowSorter(sorter);
+
         table.setBackground(UIManager.getColor("Table.background"));
         table.setForeground(UIManager.getColor("Table.foreground"));
         table.setGridColor(UIManager.getColor("Table.gridColor"));
 
+        table.getColumnModel().getColumn(1).setCellEditor(new ProductoComboBoxEditor());
+        table.getColumnModel().getColumn(1).setCellRenderer(new ProductoComboBoxRenderer());
+
         setViewportView(table);
         setBorder(BorderFactory.createTitledBorder(titulo));
-
-        RendererTablaCustom renderer = new RendererTablaCustom();
-        for (int i = 0; i < columnas.length; i++) {
-            table.getColumnModel().getColumn(i).setCellRenderer(renderer);
-        }
     }
 
-    public void setComboBoxItems(String[] items) {
-        JComboBox<String> comboBox = new JComboBox<>(items);
-        table.getColumnModel().getColumn(1).setCellEditor(new DefaultCellEditor(comboBox));
+    public JTable getTable() {
+        return table;
     }
 
+    public DefaultTableModel getTableModel() {
+        return tableModel;
+    }
 }

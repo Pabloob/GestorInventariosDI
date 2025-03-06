@@ -1,7 +1,7 @@
 package com.gestorinventarios.frontend.ui;
 
 import com.gestorinventarios.frontend.components.BaseView;
-import com.gestorinventarios.frontend.components.TablaCustom;
+import com.gestorinventarios.frontend.components.Tabla.TablaCustom;
 import com.gestorinventarios.frontend.controller.ProductoController;
 import com.gestorinventarios.frontend.controller.UsuarioController;
 import com.gestorinventarios.frontend.controller.VentaController;

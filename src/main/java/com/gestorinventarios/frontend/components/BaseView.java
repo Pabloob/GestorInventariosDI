@@ -2,6 +2,7 @@ package com.gestorinventarios.frontend.components;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
+import com.gestorinventarios.frontend.components.Tabla.TablaCustom;
 import com.gestorinventarios.frontend.controller.ProductoController;
 import com.gestorinventarios.frontend.controller.UsuarioController;
 import com.gestorinventarios.frontend.controller.VentaController;

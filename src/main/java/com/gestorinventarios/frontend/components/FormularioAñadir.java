@@ -2,6 +2,7 @@ package com.gestorinventarios.frontend.components;
 
 import com.gestorinventarios.backend.model.DetalleVenta;
 import com.gestorinventarios.backend.model.Producto;
+import com.gestorinventarios.frontend.components.Tabla.TablaCustom;
 import com.gestorinventarios.frontend.controller.ProductoController;
 import com.gestorinventarios.frontend.controller.UsuarioController;
 import com.gestorinventarios.frontend.controller.VentaController;
