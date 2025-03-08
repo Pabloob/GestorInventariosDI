@@ -20,6 +20,9 @@ public class ProductoController {
     public List<Producto> obtenerProductos() {
         return productoService.listarProductos();
     }
+    public List<Producto> obtenerProductos(Object [] filtros) {
+        return productoService.listarProductos(filtros);
+    }
 
     public Producto obtenerPorNombre(String nombre) {
         return productoService.obtenerPorNombre(nombre);
@@ -39,17 +42,4 @@ public class ProductoController {
         return productoService.obtenerStockBajo();
     }
 
-    public void actualizarProductos(TablaCustom productosTable) {
-        DefaultTableModel model = productosTable.getTableModel();
-        model.setRowCount(0);
-        for (Producto producto : obtenerProductos()) {
-            if (producto.getActivo() == 1) {
-                model.addRow(new Object[]{
-                        producto.getNombre(),
-                        producto.getCantidad(),
-                        producto.getPrecio() + "€",
-                });
-            }
-        }
-    }
 }

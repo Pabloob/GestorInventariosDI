@@ -1,6 +1,7 @@
 package com.gestorinventarios.backend.service;
 
 import com.gestorinventarios.backend.model.Producto;
+import com.gestorinventarios.backend.repository.ProductoDAO;
 import com.gestorinventarios.backend.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,11 @@ public class ProductoService {
 
     public List<Producto> listarProductos() {
         return productoRepository.findAll();
+    }
+
+    public List<Producto> listarProductos(Object[] filtros) {
+        ProductoDAO productoDAO = new ProductoDAO();
+        return productoDAO.obtenerFiltrado(filtros);
     }
 
     public void guardarProducto(Producto producto) {

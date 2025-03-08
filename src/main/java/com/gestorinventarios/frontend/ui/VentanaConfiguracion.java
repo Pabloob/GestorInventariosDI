@@ -1,23 +1,19 @@
 package com.gestorinventarios.frontend.ui;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatLightLaf;
 import com.gestorinventarios.frontend.components.BaseView;
-import com.gestorinventarios.frontend.controller.ProductoController;
-import com.gestorinventarios.frontend.controller.UsuarioController;
-import com.gestorinventarios.frontend.controller.VentaController;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class VentanaConfiguracion extends BaseView {
+    private static VentanaConfiguracion instance;
 
     private final JCheckBox controlTema;
     private final JButton guardar;
 
-    public VentanaConfiguracion(VentanaPrincipal dashboard, UsuarioController usuarioController,
-                                ProductoController productoController, VentaController ventaController) {
-        super("Configuración", 500, 400, usuarioController, productoController, ventaController);
+    public VentanaConfiguracion() {
+        super("Configuración", 500, 400);
 
         crearTitulo("Configuración");
 
@@ -54,5 +50,11 @@ public class VentanaConfiguracion extends BaseView {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    public static VentanaConfiguracion getInstance() {
+        if (instance == null) {
+            instance = new VentanaConfiguracion();
+        }
+        return instance;
     }
 }

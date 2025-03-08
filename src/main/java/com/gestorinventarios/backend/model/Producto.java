@@ -26,4 +26,12 @@ public class Producto {
 
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL)
     private List<DetalleVenta> detalles;
+
+    public Producto(Long id, String nombre, double precio, int cantidad, int activo) {
+        this.id = id;
+        this.nombre = nombre;
+        this.precio = precio;
+        this.cantidad = cantidad;
+        this.activo = activo;
+    }
 }

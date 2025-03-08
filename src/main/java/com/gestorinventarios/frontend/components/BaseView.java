@@ -2,58 +2,77 @@ package com.gestorinventarios.frontend.components;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
+import com.gestorinventarios.MainApp;
 import com.gestorinventarios.frontend.components.Tabla.TablaCustom;
-import com.gestorinventarios.frontend.controller.ProductoController;
-import com.gestorinventarios.frontend.controller.UsuarioController;
-import com.gestorinventarios.frontend.controller.VentaController;
+import com.gestorinventarios.frontend.controller.*;
 import com.gestorinventarios.frontend.ui.*;
+import org.springframework.context.ApplicationContext;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class BaseView extends JFrame {
     protected JPanel mainPanel;
     protected GridBagConstraints gbc;
-    public final UsuarioController usuarioController;
-    public final ProductoController productoController;
-    public final VentaController ventaController;
-    protected static final List<BaseView> ventanasAbiertas = new ArrayList<BaseView>(); // Lista de ventanas abiertas
+    protected final UsuarioController usuarioController;
+    protected final ProductoController productoController;
+    protected final VentaController ventaController;
+    protected final DetallesVentaController detallesVentaController;
 
-    // ---------------- CONFIGURACIÓN DE LA VENTANA ---------------- //
-    public BaseView(String titulo, int width, int height,
-                    UsuarioController usuarioController,
-                    ProductoController productoController,
-                    VentaController ventaController) {
+    protected static final Map<Class<? extends BaseView>, BaseView> ventanasAbiertas = new HashMap<>();
+    private static boolean temaOscuro = false; // Estado del tema actual
 
-        this.usuarioController = usuarioController;
-        this.productoController = productoController;
-        this.ventaController = ventaController;
+    public BaseView(String titulo, int width, int height) {
+        // Cerrar una ventana del mismo tipo si ya está abierta
+        if (ventanasAbiertas.containsKey(this.getClass())) {
+            ventanasAbiertas.get(this.getClass()).dispose();
+        }
 
+        // Obtener el contexto de Spring
+        ApplicationContext context = MainApp.getApplicationContext();
+        this.usuarioController = context.getBean(UsuarioController.class);
+        this.productoController = context.getBean(ProductoController.class);
+        this.ventaController = context.getBean(VentaController.class);
+        this.detallesVentaController = context.getBean(DetallesVentaController.class);
+
+        // Aplicar el tema actual antes de crear la ventana
+        configurarUI();
+
+        // Configuración de la ventana
         setTitle(titulo);
         setSize(width, height);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
-        configurarUI();
         configLayoutPrincipal();
-        ventanasAbiertas.add(this);
+
+        // Registrar la ventana en el mapa
+        ventanasAbiertas.put(this.getClass(), this);
         setVisible(true);
     }
 
     @Override
     public void dispose() {
         super.dispose();
-        ventanasAbiertas.remove(this);
+        ventanasAbiertas.remove(this.getClass());
     }
 
     private void configurarUI() {
         try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
+            if (temaOscuro) {
+                UIManager.setLookAndFeel(new FlatDarkLaf());
+            } else {
+                UIManager.setLookAndFeel(new FlatLightLaf());
+            }
             UIManager.put("Component.arc", 10);
             UIManager.put("Button.arc", 15);
             UIManager.put("TextComponent.arc", 10);
             UIManager.put("ScrollBar.width", 12);
+
+            // Aplicar el LookAndFeel a la ventana actual
+            SwingUtilities.updateComponentTreeUI(this);
+            this.repaint();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -66,14 +85,18 @@ public abstract class BaseView extends JFrame {
         setContentPane(mainPanel);
     }
 
-    protected void aplicarTema(boolean oscuro) {
+    protected static void aplicarTema(boolean oscuro) {
         try {
+            temaOscuro = oscuro; // Guardar el estado del tema
+
             if (oscuro) {
                 UIManager.setLookAndFeel(new FlatDarkLaf());
             } else {
                 UIManager.setLookAndFeel(new FlatLightLaf());
             }
-            for (BaseView ventana : ventanasAbiertas) {
+
+            // Aplicar el tema a todas las ventanas abiertas
+            for (BaseView ventana : ventanasAbiertas.values()) {
                 SwingUtilities.updateComponentTreeUI(ventana);
                 ventana.repaint();
             }
@@ -82,33 +105,42 @@ public abstract class BaseView extends JFrame {
         }
     }
 
+
     // ---------------- MÉTODOS DE NAVEGACIÓN ---------------- //
     protected void abrirVentanaInicioSesion() {
-        new VentanaInicioSesion(usuarioController, productoController, ventaController);
+        new VentanaInicioSesion();
     }
 
     protected void abrirVentanRegistro() {
-        new VentanaRegistro(usuarioController, productoController, ventaController);
+        new VentanaRegistro();
     }
 
     protected void abrirVentanaPrincipal() {
-        new VentanaPrincipal(usuarioController, productoController, ventaController);
+        new VentanaPrincipal();
     }
 
-    protected void abrirVentanaVentas(VentanaPrincipal ventanaPrincipal) {
-        new VentanaVentas(ventanaPrincipal, usuarioController, productoController, ventaController);
+    protected VentanaVentas abrirVentanaVentas() {
+        return new VentanaVentas();
     }
 
-    protected void abrirVentanaProductos(VentanaPrincipal ventanaPrincipal) {
-        new VentanaProductos(ventanaPrincipal, usuarioController, productoController, ventaController);
+    protected VentanaProductos abrirVentanaProductos() {
+        return new VentanaProductos();
     }
 
-    protected void abrirVentanaConfiguracion(VentanaPrincipal ventanaPrincipal) {
-        new VentanaConfiguracion(ventanaPrincipal, usuarioController, productoController, ventaController);
+    protected void abrirVentanaConfiguracion() {
+        new VentanaConfiguracion();
     }
 
-    protected void abrirFormularioAnadir(TablaCustom tabla, String titulo, boolean esVenta) {
-        new FormularioAñadir(tabla, titulo, esVenta, usuarioController, productoController, ventaController);
+    protected void abrirVentanaExportar() {
+        new VentanaExportar();
+    }
+
+    protected void abrirVentanaAñadirProducto(TablaCustom tabla) {
+        new VentanaAñadirProducto(tabla);
+    }
+
+    protected void abrirVentanaAñadirVenta(TablaCustom tabla) {
+        new VentanaAñadirVenta(tabla);
     }
 
     // ---------------- COMPONENTES DE UI ---------------- //
@@ -227,10 +259,18 @@ public abstract class BaseView extends JFrame {
     }
 
     protected void crearPanelTablas(int fila, int columna, TablaCustom... tablas) {
-        JPanel panel = new JPanel(new GridLayout(1, tablas.length, 15, 15));
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbcTabla = new GridBagConstraints();
+        gbcTabla.fill = GridBagConstraints.BOTH;
+        gbcTabla.gridy = 0;
+        gbcTabla.weighty = 1.0;
 
-        for (TablaCustom tabla : tablas) {
-            panel.add(tabla);
+        double weightX = 1.0 / tablas.length;
+
+        for (int i = 0; i < tablas.length; i++) {
+            gbcTabla.gridx = i;
+            gbcTabla.weightx = weightX;
+            panel.add(tablas[i], gbcTabla);
         }
 
         gbc.gridx = columna;
@@ -241,6 +281,7 @@ public abstract class BaseView extends JFrame {
         gbc.fill = GridBagConstraints.BOTH;
         mainPanel.add(panel, gbc);
     }
+
 
     protected void crearPanelLateral(int fila, int columna, String[] titulos, String[] textos) {
         if (titulos.length != textos.length) {
@@ -255,7 +296,7 @@ public abstract class BaseView extends JFrame {
 
             sidebarPanel.add(box);
         }
-
+        sidebarPanel.setPreferredSize(new Dimension(120, 0));
         gbc.gridx = columna;
         gbc.gridy = fila;
         gbc.gridwidth = 1;
@@ -266,7 +307,9 @@ public abstract class BaseView extends JFrame {
     }
 
     private static JPanel getJPanel(String[] titulos, String[] textos, int i) {
-        JPanel box = new JPanel(new BorderLayout());
+        JPanel box = new JPanel();
+        box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+
         box.setBackground(new Color(186, 186, 186));
         box.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(100, 100, 100), 2, true),
@@ -285,5 +328,4 @@ public abstract class BaseView extends JFrame {
         box.add(contenidoLabel, BorderLayout.CENTER);
         return box;
     }
-
 }

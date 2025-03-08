@@ -6,6 +6,7 @@ import com.gestorinventarios.backend.repository.DetalleVentaRepository;
 import com.gestorinventarios.backend.repository.VentaRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -24,6 +25,9 @@ public class VentaService {
 
     public List<Venta> listarVentas() {
         return ventaRepository.findAll();
+    }
+    public List<Venta> listarVentasPorFecha(LocalDate fecha) {
+        return ventaRepository.findByFechaVenta(fecha);
     }
 
     public Venta guardarVenta(Venta venta, List<DetalleVenta> detalles) {

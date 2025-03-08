@@ -10,7 +10,6 @@ import lombok.ToString;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 public class DetalleVenta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,4 +25,15 @@ public class DetalleVenta {
 
     private int cantidad;
     private double precioUnitario;
+
+    @Override
+    public String toString() {
+        return "DetalleVenta{" +
+                "id=" + id +
+                ", venta=" + venta +
+                ", producto=" + producto +
+                ", cantidad=" + cantidad +
+                ", precioUnitario=" + precioUnitario +
+                '}';
+    }
 }

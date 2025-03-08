@@ -1,9 +1,7 @@
 package com.gestorinventarios.frontend.ui;
 
 import com.gestorinventarios.frontend.components.BaseView;
-import com.gestorinventarios.frontend.controller.ProductoController;
-import com.gestorinventarios.frontend.controller.UsuarioController;
-import com.gestorinventarios.frontend.controller.VentaController;
+import com.gestorinventarios.frontend.utils.Utiles; // Importar Utiles para validaciones
 
 import javax.swing.*;
 import java.util.Arrays;
@@ -17,11 +15,8 @@ public class VentanaRegistro extends BaseView {
     JPasswordField campoContrasena;
     JLabel mensajeError;
 
-    public VentanaRegistro(UsuarioController usuarioController,
-                           ProductoController productoController,
-                           VentaController ventaController) {
-        super("Registro de Usuario", 450, 400,
-                usuarioController, productoController, ventaController);
+    public VentanaRegistro() {
+        super("Registro de Usuario", 450, 400);
 
         crearTitulo("Registro");
         campoNombre = (JTextField) crearCampoTexto("Nombre", false, 1);
@@ -36,22 +31,33 @@ public class VentanaRegistro extends BaseView {
         botonCancelar.addActionListener(e -> dispose());
     }
 
+
     private void registrar() {
         String nombre = campoNombre.getText();
         String email = campoEmail.getText();
         char[] contrasenaChars = campoContrasena.getPassword();
         String contrasena = new String(contrasenaChars);
 
-        Arrays.fill(contrasenaChars, '\0');
+        Arrays.fill(contrasenaChars, '\0'); // Borrar la contraseña de memoria
 
+        // Validar que el email tenga @ y un dominio válido
+        if (!Utiles.validarEmail(email)) {
+            mensajeError.setText("Email inválido. Debe contener '@' y un dominio válido.");
+            return;
+        }
+
+        // Validar si el email ya está en uso
         if (usuarioController.obtenerUsuarioPorEmail(email) != null) {
-            mensajeError.setText("El email ya existe");
+            mensajeError.setText("El email ya está registrado.");
+            return;
+        }
+
+        // Intentar registrar al usuario
+        if (usuarioController.registrarUsuario(nombre, email, contrasena)) {
+            abrirVentanaInicioSesion();
+            dispose();
         } else {
-            if (usuarioController.registrarUsuario(nombre, email, contrasena)) {
-                abrirVentanaInicioSesion();
-            } else {
-                mensajeError.setText("No se ha podido registrar");
-            }
+            mensajeError.setText("No se ha podido registrar.");
         }
     }
 }
