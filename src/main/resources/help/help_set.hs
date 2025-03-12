@@ -8,7 +8,7 @@
         <title>Ejemplo ayuda JavaHelp</title>
         <maps>
                 <!-- Pagina por defecto al mostrar la ayuda -->
-                <homeID>aplicacion</homeID>
+                <homeID>principal</homeID>
                 <!-- Que mapa deseamos -->
                 <mapref location="map_file.jhm"/>
         </maps>

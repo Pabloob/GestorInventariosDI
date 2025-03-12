@@ -59,7 +59,7 @@ ORDER BY v.fecha_venta DESC, v.id;]]>
 					<subreportParameterExpression><![CDATA[$F{id_venta}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "ReporteVentasTodos_subreport1.jasper"]]></subreportExpression>
+				<subreportExpression><![CDATA["ReporteVentasTodos_subreport1.jasper"]]></subreportExpression>
 			</subreport>
 			<textField>
 				<reportElement x="142" y="35" width="184" height="65" uuid="13d4d2f9-af01-4a27-9c1b-9482f2178c14"/>

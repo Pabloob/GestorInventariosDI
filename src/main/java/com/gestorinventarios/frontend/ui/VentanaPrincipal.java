@@ -1,39 +1,36 @@
 package com.gestorinventarios.frontend.ui;
 
 import com.gestorinventarios.frontend.components.BaseView;
-import com.gestorinventarios.frontend.components.Tabla.TablaCustom;
-import lombok.Getter;
+import com.gestorinventarios.frontend.components.Tabla.SPTabla;
+import com.gestorinventarios.frontend.ui.menus.VentanaConfiguracion;
+import com.gestorinventarios.frontend.ui.menus.VentanaExportar;
+import com.gestorinventarios.frontend.ui.menus.VentanaProductos;
+import com.gestorinventarios.frontend.ui.menus.VentanaVentas;
 
 import javax.swing.*;
 
 public class VentanaPrincipal extends BaseView {
-    @Getter
-    TablaCustom tablaVentas;
-    @Getter
-    TablaCustom tablaProductos;
-    String cantidadProductosStockBajo;
-    String numVentas;
-    String ingresos;
+    SPTabla tablaVentas, tablaProductos;
+    String cantidadProductosStockBajo, numVentas, ingresos;
+
+    JPanel panelLateral;
 
     public VentanaPrincipal() {
         super("Gestor de Inventarios", 1400, 700);
 
-        // Crear el menú FlatLaf
         crearMenu();
 
         crearTitulo("Gestión de Inventarios");
 
-        tablaVentas = new TablaCustom("Ventas", new String[]{"ID", "Producto", "Cantidad", "Precio", "Fecha"}, ventaController, detallesVentaController);
-        tablaProductos = new TablaCustom("Productos", new String[]{"Nombre", "Stock", "Precio"}, productoController);
+        tablaVentas = new SPTabla("Ventas", new String[]{"Producto", "Cantidad", "Precio", "Fecha"}, false, ventaController, detallesVentaController);
+        tablaProductos = new SPTabla("Productos", new String[]{"Nombre", "Stock", "Precio"}, productoController);
 
-        crearPanelTablas(1, 0, tablaVentas, tablaProductos);
+        crearPanelComponentes(1, 0, tablaVentas, tablaProductos);
         actualizarPanelLateral();
-        crearPanelLateral(1, 1, new String[]{"Bajo Stock", "Ventas hoy", "Ingresos"},
+        panelLateral = crearPanelLateral(1, 1, new String[]{"Productos Bajo Stock", "Ventas", "Ingresos"},
                 new String[]{cantidadProductosStockBajo, numVentas, ingresos});
-
-        actualizarTablas();
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
-
 
     private void crearMenu() {
         JMenuBar menuBar = new JMenuBar();
@@ -47,43 +44,35 @@ public class VentanaPrincipal extends BaseView {
         menu.add(productos);
         menu.add(configuracion);
         menu.add(exportar);
+        menu.add(añadirMenuAyuda());
         menuBar.add(menu);
         setJMenuBar(menuBar);
 
-        ventas.addActionListener(e -> {
-            VentanaVentas ventana = abrirVentanaVentas();
-            ventana.addWindowListener(new java.awt.event.WindowAdapter() {
-                @Override
-                public void windowClosed(java.awt.event.WindowEvent e) {
-                    actualizarTablas();
-                }
-            });
-        });
-
-        productos.addActionListener(e -> {
-            VentanaProductos ventana = abrirVentanaProductos();
-            ventana.addWindowListener(new java.awt.event.WindowAdapter() {
-                @Override
-                public void windowClosed(java.awt.event.WindowEvent e) {
-                    actualizarTablas();
-                }
-            });
-        });
-
-
-        configuracion.addActionListener(e -> abrirVentanaConfiguracion());
-        exportar.addActionListener(e -> abrirVentanaExportar());
-    }
-
-    public void actualizarTablas() {
-        tablaVentas.actualizarTabla();
-        tablaProductos.actualizarTabla();
+        ventas.addActionListener(e -> new VentanaVentas().addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                tablaVentas.actualizarTabla();
+                actualizarPanelLateral();
+            }
+        }));
+        productos.addActionListener(e -> new VentanaProductos().addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosed(java.awt.event.WindowEvent e) {
+                tablaProductos.actualizarTabla();
+                actualizarPanelLateral();
+            }
+        }));
+        configuracion.addActionListener(e -> new VentanaConfiguracion());
+        exportar.addActionListener(e -> new VentanaExportar());
     }
 
     private void actualizarPanelLateral() {
         cantidadProductosStockBajo = String.valueOf(productoController.obtenerStockBajo());
         numVentas = String.valueOf(ventaController.obtenerNumVentas());
         ingresos = ventaController.obtenerTotalIngresos() + "€";
+        if (panelLateral == null) return;
+        panelLateral.revalidate();
+        panelLateral.repaint();
     }
 
 }

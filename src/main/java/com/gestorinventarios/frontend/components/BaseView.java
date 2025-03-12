@@ -3,15 +3,21 @@ package com.gestorinventarios.frontend.components;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.gestorinventarios.MainApp;
-import com.gestorinventarios.frontend.components.Tabla.TablaCustom;
 import com.gestorinventarios.frontend.controller.*;
-import com.gestorinventarios.frontend.ui.*;
+import com.gestorinventarios.frontend.ui.VentanaInicioSesion;
+import com.gestorinventarios.frontend.ui.menus.VentanaVentas;
 import org.springframework.context.ApplicationContext;
 
-import javax.swing.*;
 import java.awt.*;
-import java.util.HashMap;
-import java.util.Map;
+import javax.help.HelpBroker;
+import javax.help.HelpSet;
+import javax.swing.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
+import java.util.List;
 
 public abstract class BaseView extends JFrame {
     protected JPanel mainPanel;
@@ -20,9 +26,9 @@ public abstract class BaseView extends JFrame {
     protected final ProductoController productoController;
     protected final VentaController ventaController;
     protected final DetallesVentaController detallesVentaController;
-
+    private HelpBroker hb;
     protected static final Map<Class<? extends BaseView>, BaseView> ventanasAbiertas = new HashMap<>();
-    private static boolean temaOscuro = false; // Estado del tema actual
+    private static boolean temaOscuro = cargarPreferenciaTema();
 
     public BaseView(String titulo, int width, int height) {
         // Cerrar una ventana del mismo tipo si ya está abierta
@@ -47,30 +53,21 @@ public abstract class BaseView extends JFrame {
         setLocationRelativeTo(null);
         configLayoutPrincipal();
 
+        //Añadir javaHelp
+        agregarJavaHelp();
+
         // Registrar la ventana en el mapa
         ventanasAbiertas.put(this.getClass(), this);
         setVisible(true);
     }
 
-    @Override
-    public void dispose() {
-        super.dispose();
-        ventanasAbiertas.remove(this.getClass());
-    }
-
     private void configurarUI() {
         try {
-            if (temaOscuro) {
-                UIManager.setLookAndFeel(new FlatDarkLaf());
-            } else {
-                UIManager.setLookAndFeel(new FlatLightLaf());
-            }
+            UIManager.setLookAndFeel(temaOscuro ? new FlatDarkLaf() : new FlatLightLaf());
             UIManager.put("Component.arc", 10);
             UIManager.put("Button.arc", 15);
             UIManager.put("TextComponent.arc", 10);
             UIManager.put("ScrollBar.width", 12);
-
-            // Aplicar el LookAndFeel a la ventana actual
             SwingUtilities.updateComponentTreeUI(this);
             this.repaint();
         } catch (Exception ex) {
@@ -78,22 +75,31 @@ public abstract class BaseView extends JFrame {
         }
     }
 
-    protected void configLayoutPrincipal() {
-        mainPanel = new JPanel(new GridBagLayout());
-        gbc = new GridBagConstraints();
-        gbc.insets = new Insets(15, 15, 15, 15);
-        setContentPane(mainPanel);
+    private void agregarJavaHelp() {
+        try {
+            URL hsURL = getClass().getClassLoader().getResource("help/help_set.hs");
+
+            if (hsURL != null) {
+                HelpSet helpset = new HelpSet(null, hsURL);
+                hb = helpset.createHelpBroker();
+
+                hb.enableHelpKey(this.getContentPane(), "principal", helpset);
+            } else {
+                System.err.println("Error: No se encontró el archivo help_set.hs");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     protected static void aplicarTema(boolean oscuro) {
-        try {
-            temaOscuro = oscuro; // Guardar el estado del tema
+        if (temaOscuro == oscuro) return;
 
-            if (oscuro) {
-                UIManager.setLookAndFeel(new FlatDarkLaf());
-            } else {
-                UIManager.setLookAndFeel(new FlatLightLaf());
-            }
+        temaOscuro = oscuro;
+        guardarPreferenciaTema(oscuro);
+
+        try {
+            UIManager.setLookAndFeel(oscuro ? new FlatDarkLaf() : new FlatLightLaf());
 
             // Aplicar el tema a todas las ventanas abiertas
             for (BaseView ventana : ventanasAbiertas.values()) {
@@ -105,49 +111,54 @@ public abstract class BaseView extends JFrame {
         }
     }
 
+    private static boolean cargarPreferenciaTema() {
+        Properties props = new Properties();
+        try (FileInputStream in = new FileInputStream("config.properties")) {
+            props.load(in);
+            return Boolean.parseBoolean(props.getProperty("temaOscuro", "false"));
+        } catch (IOException e) {
+            return false; // Si no se encuentra el archivo, usar el tema claro por defecto
+        }
+    }
 
-    // ---------------- MÉTODOS DE NAVEGACIÓN ---------------- //
-    protected void abrirVentanaInicioSesion() {
+    private static void guardarPreferenciaTema(boolean oscuro) {
+        Properties props = new Properties();
+        props.setProperty("temaOscuro", String.valueOf(oscuro));
+        try (FileOutputStream out = new FileOutputStream("config.properties")) {
+            props.store(out, "Configuraciones de la aplicación");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void configLayoutPrincipal() {
+        mainPanel = new JPanel(new GridBagLayout());
+        gbc = new GridBagConstraints();
+        gbc.insets = new Insets(15, 15, 15, 15);
+        setContentPane(mainPanel);
+    }
+
+    public void reiniciar() {
+        List<BaseView> ventanas = new ArrayList<>(ventanasAbiertas.values());
+
+        for (BaseView ventana : ventanas) {
+            ventana.dispose();
+        }
+        ventanasAbiertas.clear();
         new VentanaInicioSesion();
     }
 
-    protected void abrirVentanRegistro() {
-        new VentanaRegistro();
-    }
 
-    protected void abrirVentanaPrincipal() {
-        new VentanaPrincipal();
-    }
-
-    protected VentanaVentas abrirVentanaVentas() {
-        return new VentanaVentas();
-    }
-
-    protected VentanaProductos abrirVentanaProductos() {
-        return new VentanaProductos();
-    }
-
-    protected void abrirVentanaConfiguracion() {
-        new VentanaConfiguracion();
-    }
-
-    protected void abrirVentanaExportar() {
-        new VentanaExportar();
-    }
-
-    protected void abrirVentanaAñadirProducto(TablaCustom tabla) {
-        new VentanaAñadirProducto(tabla);
-    }
-
-    protected void abrirVentanaAñadirVenta(TablaCustom tabla) {
-        new VentanaAñadirVenta(tabla);
+    @Override
+    public void dispose() {
+        super.dispose();
+        ventanasAbiertas.remove(this.getClass());
     }
 
     // ---------------- COMPONENTES DE UI ---------------- //
     protected void crearTitulo(String texto) {
         JLabel tituloLabel = new JLabel(texto, SwingConstants.CENTER);
         tituloLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
-        tituloLabel.setForeground(Color.BLACK);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -171,9 +182,9 @@ public abstract class BaseView extends JFrame {
         return mensajeError;
     }
 
-    protected JComponent crearCampoTexto(String texto, boolean esContrasena, int fila) {
+    protected javax.swing.JComponent crearCampoTexto(String texto, boolean esContrasena, int fila) {
         JLabel label = new JLabel(texto, SwingConstants.RIGHT);
-        JComponent campoTexto = esContrasena ? new JPasswordField() : new JTextField();
+        javax.swing.JComponent campoTexto = esContrasena ? new JPasswordField() : new JTextField();
 
         campoTexto.setPreferredSize(new Dimension(200, 25));
         label.setPreferredSize(new Dimension(100, 30));
@@ -181,7 +192,7 @@ public abstract class BaseView extends JFrame {
         return aplicarEstiloTexto(fila, label, campoTexto);
     }
 
-    private JComponent aplicarEstiloTexto(int fila, JLabel label, JComponent campoTexto) {
+    private javax.swing.JComponent aplicarEstiloTexto(int fila, JLabel label, javax.swing.JComponent campoTexto) {
         label.setFont(new Font("Arial", Font.PLAIN, 14));
 
         GridBagConstraints gbcLabel = new GridBagConstraints();
@@ -201,20 +212,10 @@ public abstract class BaseView extends JFrame {
         return campoTexto;
     }
 
-
-    protected JComponent crearDesplegable(String texto, JComboBox<?> desplegable, int fila) {
-        JLabel label = new JLabel(texto, SwingConstants.RIGHT);
-        label.setPreferredSize(new Dimension(100, 30));
-        desplegable.setPreferredSize(new Dimension(200, 25));
-
-        return aplicarEstiloTexto(fila, label, desplegable);
-    }
-
-    protected void crearPanelBotones(int fila, JButton... botones) {
+    protected void crearPanelBotones(int fila, BotonConEstilo... botones) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
 
-        for (JButton boton : botones) {
-            asignarEstiloBoton(boton);
+        for (BotonConEstilo boton : botones) {
             panel.add(boton);
         }
 
@@ -225,52 +226,24 @@ public abstract class BaseView extends JFrame {
         mainPanel.add(panel, gbc);
     }
 
-    protected JButton crearBoton(String texto) {
-        JButton boton = new JButton(texto);
-        asignarEstiloBoton(boton);
-        return boton;
-    }
-
-    protected void asignarEstiloBoton(JButton boton) {
-        boton.setForeground(Color.WHITE);
-        boton.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        boton.setFocusPainted(false);
-        boton.setBorderPainted(false);
-        boton.setOpaque(true);
-        boton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        boton.setMargin(new Insets(5, 20, 5, 20));
-
-        switch (boton.getText().toLowerCase()) {
-            case "iniciar sesion":
-            case "añadir":
-                boton.setBackground(new Color(30, 144, 255));
-                break;
-            case "registrar":
-                boton.setBackground(new Color(0x19FF00));
-                break;
-            case "borrar":
-            case "cancelar":
-                boton.setBackground(new Color(0xFF0000));
-                break;
-            default:
-                boton.setBackground(new Color(0xFF9800));
-                break;
-        }
-    }
-
-    protected void crearPanelTablas(int fila, int columna, TablaCustom... tablas) {
+    protected void crearPanelComponentes(int fila, int columna, JComponent... componentes) {
         JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
         GridBagConstraints gbcTabla = new GridBagConstraints();
         gbcTabla.fill = GridBagConstraints.BOTH;
         gbcTabla.gridy = 0;
         gbcTabla.weighty = 1.0;
 
-        double weightX = 1.0 / tablas.length;
+        double weightX = 1.0 / componentes.length;
 
-        for (int i = 0; i < tablas.length; i++) {
+        for (int i = 0; i < componentes.length; i++) {
             gbcTabla.gridx = i;
             gbcTabla.weightx = weightX;
-            panel.add(tablas[i], gbcTabla);
+            JPanel container = new JPanel(new BorderLayout());
+            container.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100), 2, true));
+            container.add(componentes[i], BorderLayout.CENTER);
+            panel.add(container, gbcTabla);
         }
 
         gbc.gridx = columna;
@@ -282,21 +255,21 @@ public abstract class BaseView extends JFrame {
         mainPanel.add(panel, gbc);
     }
 
+// -------------------------------
 
-    protected void crearPanelLateral(int fila, int columna, String[] titulos, String[] textos) {
+    protected JPanel crearPanelLateral(int fila, int columna, String[] titulos, String[] textos) {
         if (titulos.length != textos.length) {
             throw new IllegalArgumentException("Los arrays titulos y textos deben tener la misma longitud.");
         }
 
         JPanel sidebarPanel = new JPanel(new GridLayout(textos.length, 1, 10, 10));
-        sidebarPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        sidebarPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
         for (int i = 0; i < textos.length; i++) {
             JPanel box = getJPanel(titulos, textos, i);
-
             sidebarPanel.add(box);
         }
-        sidebarPanel.setPreferredSize(new Dimension(120, 0));
+
         gbc.gridx = columna;
         gbc.gridy = fila;
         gbc.gridwidth = 1;
@@ -304,21 +277,23 @@ public abstract class BaseView extends JFrame {
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
         mainPanel.add(sidebarPanel, gbc);
+        return sidebarPanel;
     }
 
-    private static JPanel getJPanel(String[] titulos, String[] textos, int i) {
-        JPanel box = new JPanel();
-        box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+// -------------------------------
 
-        box.setBackground(new Color(186, 186, 186));
+    private static JPanel getJPanel(String[] titulos, String[] textos, int i) {
+        JPanel box = new JPanel(new BorderLayout());
+
+        box.setBackground(new Color(80, 80, 80));
         box.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(100, 100, 100), 2, true),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                BorderFactory.createLineBorder(new Color(120, 120, 120), 2, true),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
 
         JLabel tituloLabel = new JLabel(titulos[i], SwingConstants.LEFT);
         tituloLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        tituloLabel.setForeground(Color.BLACK);
+        tituloLabel.setForeground(Color.WHITE);
 
         JLabel contenidoLabel = new JLabel(textos[i], SwingConstants.CENTER);
         contenidoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
@@ -328,4 +303,17 @@ public abstract class BaseView extends JFrame {
         box.add(contenidoLabel, BorderLayout.CENTER);
         return box;
     }
+
+    protected JMenuItem añadirMenuAyuda() {
+        JMenuItem menuAyuda = new JMenuItem("Ayuda");
+
+        if (hb != null) {
+            menuAyuda.addActionListener(e -> hb.setDisplayed(true));
+        } else {
+            System.err.println("Error: HelpBroker no está inicializado.");
+        }
+
+        return menuAyuda;
+    }
+
 }

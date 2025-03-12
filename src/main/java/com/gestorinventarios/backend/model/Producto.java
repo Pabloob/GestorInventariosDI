@@ -4,14 +4,12 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 public class Producto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,5 +31,24 @@ public class Producto {
         this.precio = precio;
         this.cantidad = cantidad;
         this.activo = activo;
+    }
+
+    public String getActivoString() {
+        if (this.activo == 1) {
+            return "Activo";
+        }
+        return "Inactivo";
+    }
+
+    @Override
+    public String toString() {
+        return "Producto{" +
+                "id=" + id +
+                ", nombre='" + nombre + '\'' +
+                ", precio=" + precio +
+                ", cantidad=" + cantidad +
+                ", activo=" + activo +
+                ", detalles=" + detalles +
+                '}';
     }
 }

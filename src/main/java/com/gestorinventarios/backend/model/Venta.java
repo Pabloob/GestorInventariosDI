@@ -22,6 +22,6 @@ public class Venta {
     private int clienteId;
     private LocalDate fechaVenta;
 
-    @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "venta", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<DetalleVenta> detalles;
 }

@@ -1,10 +1,11 @@
 package com.gestorinventarios.frontend.controller;
 
 import com.gestorinventarios.backend.model.DetalleVenta;
+import com.gestorinventarios.backend.model.Producto;
 import com.gestorinventarios.backend.service.DetallesVentaService;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Controller
@@ -19,30 +20,22 @@ public class DetallesVentaController {
         this.ventaController = ventaController;
     }
 
-    public List<DetalleVenta> obtenerDetallesPorVenta(Long idVenta) {
-        return detallesVentaService.obtenerDetallesPorVenta(idVenta);
-    }
-
-    public List<DetalleVenta> obtenerDetallesPorVentaYProducto(Long idVenta, String nombreProducto) {
-        return detallesVentaService.obtenerDetallesPorVentaYProducto(idVenta, productoController.obtenerPorNombre(nombreProducto).getId());
-    }
-
-    public List<DetalleVenta> obtenerDetallesPorFechaVenta(LocalDate fechaVenta) {
-        return detallesVentaService.obtenerDetallesPorFechaVenta(fechaVenta);
-    }
-    public List<DetalleVenta> obtenerDetallesPorFechaVentaYProducto(LocalDate fechaVenta,String nombreProducto) {
-        return detallesVentaService.obtenerDetallesPorFechaVentaYProducto(fechaVenta,nombreProducto);
+    public List<DetalleVenta> obtenerDetallesVenta(Long idVenta) {
+        return detallesVentaService.obtenerDetallesVenta(idVenta);
     }
 
     public int obtenerCantidadPorIdVentaYProducto(long idVenta, String nombreProducto) {
-        return detallesVentaService.obtenerCantidadPorIdVentaYProducto(idVenta,productoController.obtenerPorNombre(nombreProducto).getId());
+        Producto producto = productoController.obtenerPorNombre(nombreProducto);
+        return (producto != null) ? detallesVentaService.obtenerCantidadPorIdVentaYProducto(idVenta, producto.getId()) : 0;
     }
 
-    public void guardarDetalleVenta(DetalleVenta detalleVenta) {
-        detallesVentaService.guardarDetalleVenta(detalleVenta);
-    }
+    public boolean actualizarDetallesVenta(Long id, List<DetalleVenta> detalles) {
+        if (productoController.existeStock(detalles)) {
+            detallesVentaService.actualizarDetallesVenta(ventaController.obtenerVenta(id), detalles);
+            return true;
+        }
+        return false;
 
-    public List<DetalleVenta> obtenerTodosLosDetallesVenta() {
-        return detallesVentaService.obtenerTodosLosDetallesVenta();
     }
 }
+
