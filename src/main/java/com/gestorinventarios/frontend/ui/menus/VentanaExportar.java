@@ -42,7 +42,7 @@ public class VentanaExportar extends BaseView {
         crearMenu();
     }
     private void exportarReporte(String tipo) {
-        String reportePath = "./src/main/java/com/gestorinventarios/Reportes/";
+        String reportePath = "./";
         String reporteArchivo = tipo.equals("productos") ? "ReporteProductosTodos.jasper" : "ReporteVentasTodos.jasper";
         String reporteCompleto = reportePath + reporteArchivo;
 
@@ -54,7 +54,7 @@ public class VentanaExportar extends BaseView {
         File archivoSalida = fileChooser.getSelectedFile();
         String rutaSalida = archivoSalida.getAbsolutePath();
 
-        try (Connection conexion = DriverManager.getConnection("jdbc:sqlite:src/main/database/gestor_inventarios.db")) {
+        try (Connection conexion = DriverManager.getConnection("jdbc:sqlite:./gestor_inventarios.db")) {
             JasperReport reporte = (JasperReport) JRLoader.loadObjectFromFile(reporteCompleto);
             Map<String, Object> parametros = new HashMap<>();
             parametros.put("NombreEmpresa", "PabloSA");
@@ -70,8 +70,6 @@ public class VentanaExportar extends BaseView {
         }
     }
     private void crearMenu() {
-        JMenuBar menuBar = new JMenuBar();
-
         JMenu menu = new JMenu("Menu");
         JMenuItem ventanaPrincipal = new JMenuItem("Ventana principal");
         JMenuItem ventas = new JMenuItem("Ventas");
@@ -83,7 +81,6 @@ public class VentanaExportar extends BaseView {
         menu.add(productos);
         menu.add(añadirMenuAyuda());
         menuBar.add(menu);
-        setJMenuBar(menuBar);
 
         ventanaPrincipal.addActionListener(e -> new VentanaPrincipal());
         ventas.addActionListener(e -> new VentanaVentas());

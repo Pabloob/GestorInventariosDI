@@ -57,10 +57,8 @@ public class VentanaRegistro extends BaseView {
         }
     }
     private void añadirMenu(){
-        JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("Menu");
         menu.add(añadirMenuAyuda());
         menuBar.add(menu);
-        setJMenuBar(menuBar);
     }
 }

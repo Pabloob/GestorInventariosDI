@@ -69,8 +69,6 @@ public class VentanaConfiguracion extends BaseView {
         }
     }
     private void crearMenu() {
-        JMenuBar menuBar = new JMenuBar();
-
         JMenu menu = new JMenu("Menu");
         JMenuItem ventanaPrincipal = new JMenuItem("Ventana principal");
         JMenuItem ventas = new JMenuItem("Ventas");
@@ -82,7 +80,6 @@ public class VentanaConfiguracion extends BaseView {
         menu.add(productos);
         menu.add(añadirMenuAyuda());
         menuBar.add(menu);
-        setJMenuBar(menuBar);
 
         ventanaPrincipal.addActionListener(e -> new VentanaPrincipal());
         ventas.addActionListener(e -> new VentanaVentas());

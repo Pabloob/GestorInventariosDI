@@ -5,9 +5,13 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.gestorinventarios.MainApp;
 import com.gestorinventarios.frontend.controller.*;
 import com.gestorinventarios.frontend.ui.VentanaInicioSesion;
-import com.gestorinventarios.frontend.ui.menus.VentanaVentas;
 import org.springframework.context.ApplicationContext;
 
+import java.awt.Desktop;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.net.URI;
+import javax.swing.JMenuItem;
 import java.awt.*;
 import javax.help.HelpBroker;
 import javax.help.HelpSet;
@@ -19,6 +23,8 @@ import java.net.URL;
 import java.util.*;
 import java.util.List;
 
+import static com.gestorinventarios.frontend.utils.Utiles.mostrarMensajeError;
+
 public abstract class BaseView extends JFrame {
     protected JPanel mainPanel;
     protected GridBagConstraints gbc;
@@ -29,6 +35,7 @@ public abstract class BaseView extends JFrame {
     private HelpBroker hb;
     protected static final Map<Class<? extends BaseView>, BaseView> ventanasAbiertas = new HashMap<>();
     private static boolean temaOscuro = cargarPreferenciaTema();
+    protected JMenuBar menuBar = new JMenuBar();
 
     public BaseView(String titulo, int width, int height) {
         // Cerrar una ventana del mismo tipo si ya está abierta
@@ -46,6 +53,7 @@ public abstract class BaseView extends JFrame {
         // Aplicar el tema actual antes de crear la ventana
         configurarUI();
 
+
         // Configuración de la ventana
         setTitle(titulo);
         setSize(width, height);
@@ -55,6 +63,9 @@ public abstract class BaseView extends JFrame {
 
         //Añadir javaHelp
         agregarJavaHelp();
+
+        //Crear menu creador
+        crearMenuPropio();
 
         // Registrar la ventana en el mapa
         ventanasAbiertas.put(this.getClass(), this);
@@ -147,7 +158,6 @@ public abstract class BaseView extends JFrame {
         ventanasAbiertas.clear();
         new VentanaInicioSesion();
     }
-
 
     @Override
     public void dispose() {
@@ -316,4 +326,31 @@ public abstract class BaseView extends JFrame {
         return menuAyuda;
     }
 
+    private void crearMenuPropio() {
+        JMenu menuGitHub = new JMenu("Pablo Orbea Benitez");
+        menuGitHub.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                abrirEnlace().run();
+            }
+        });
+
+        menuBar.add(menuGitHub);
+        setJMenuBar(menuBar);
+    }
+
+    private Runnable abrirEnlace(){
+        return () -> {
+           try {
+               if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                   Desktop.getDesktop().browse(new URI("https://github.com/Pabloob"));
+               } else {
+                   mostrarMensajeError(this,"No se puede abrir el navegador en este sistema.","Error");
+               }
+           } catch (Exception ex) {
+               ex.printStackTrace();
+               mostrarMensajeError(this,"Error al intentar abrir el enlace.","Error");
+           }
+       };
+    }
 }

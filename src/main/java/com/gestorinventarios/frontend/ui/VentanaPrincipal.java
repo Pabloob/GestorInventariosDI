@@ -33,8 +33,6 @@ public class VentanaPrincipal extends BaseView {
     }
 
     private void crearMenu() {
-        JMenuBar menuBar = new JMenuBar();
-
         JMenu menu = new JMenu("Menu");
         JMenuItem ventas = new JMenuItem("Ventas");
         JMenuItem productos = new JMenuItem("Productos");
@@ -46,7 +44,6 @@ public class VentanaPrincipal extends BaseView {
         menu.add(exportar);
         menu.add(añadirMenuAyuda());
         menuBar.add(menu);
-        setJMenuBar(menuBar);
 
         ventas.addActionListener(e -> new VentanaVentas().addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
